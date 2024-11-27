@@ -1,8 +1,8 @@
 import { NextConfig } from 'next'
 
 const config: NextConfig = {
+  output: 'standalone',
   typescript: {
-    // Uncomment the following line to bypass type checking during build
     ignoreBuildErrors: true,
   },
 }
