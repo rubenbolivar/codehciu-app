@@ -1,9 +1,6 @@
-import { Inter } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
-
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
   title: 'CODEHCIU',
@@ -19,9 +16,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-neutral-100 text-neutral-900">
         <Header />
-        <main className="min-h-screen">
-          {children}
-        </main>
+        <main>{children}</main>
         <Footer />
       </body>
     </html>
