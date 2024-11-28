@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TextAlign from '@tiptap/extension-text-align'
-import Image from '@tiptap/extension-image'
+import TiptapImage from '@tiptap/extension-image'
 import Blockquote from '@tiptap/extension-blockquote'
 import Code from '@tiptap/extension-code'
 import CodeBlock from '@tiptap/extension-code-block'
+import Image from 'next/image'
 
 interface ContentModalProps {
   isOpen: boolean
@@ -163,7 +164,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
             className={`p-2 rounded ${editor.isActive('blockquote') ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
             title="Cita"
           >
-            "
+            &quot;
           </button>
           <button
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
@@ -185,6 +186,13 @@ const MenuBar = ({ editor }: { editor: any }) => {
   )
 }
 
+// Add this type definition
+type ImageUploadResponse = {
+  url: string;
+  success: boolean;
+  error?: string;
+}
+
 export default function ContentModal({ isOpen, onClose, content, onSubmit }: ContentModalProps) {
   const [formData, setFormData] = useState({
     title: '',
@@ -197,17 +205,33 @@ export default function ContentModal({ isOpen, onClose, content, onSubmit }: Con
   // Add this state for image preview
   const [featuredImagePreview, setFeaturedImagePreview] = useState<string | null>(null)
 
-  // Add this function to handle image upload
+  // Update the handleImageUpload function
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      // For now, we'll just create a local preview
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setFeaturedImagePreview(reader.result as string)
-        setFormData(prev => ({ ...prev, featuredImage: reader.result as string }))
+    if (!file) return
+
+    try {
+      // Create FormData
+      const formData = new FormData()
+      formData.append('file', file)
+
+      // Upload to your API endpoint
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      const data: ImageUploadResponse = await response.json()
+
+      if (data.success) {
+        setFeaturedImagePreview(data.url)
+        setFormData(prev => ({ ...prev, featuredImage: data.url }))
+      } else {
+        throw new Error(data.error || 'Error uploading image')
       }
-      reader.readAsDataURL(file)
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      // Add error handling UI feedback here
     }
   }
 
@@ -219,7 +243,7 @@ export default function ContentModal({ isOpen, onClose, content, onSubmit }: Con
         types: ['heading', 'paragraph'],
         alignments: ['left', 'center', 'right', 'justify'],
       }),
-      Image,
+      TiptapImage,
       Blockquote,
       Code,
       CodeBlock,
@@ -288,9 +312,11 @@ export default function ContentModal({ isOpen, onClose, content, onSubmit }: Con
                 />
                 {featuredImagePreview && (
                   <div className="relative w-20 h-20">
-                    <img
+                    <Image
                       src={featuredImagePreview}
                       alt="Preview"
+                      width={80}
+                      height={80}
                       className="w-full h-full object-cover rounded"
                     />
                     <button
