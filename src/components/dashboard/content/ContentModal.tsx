@@ -18,6 +18,7 @@ interface ContentModalProps {
     category?: string
     status?: 'draft' | 'published'
     content?: string
+    featuredImage?: string
   } | null
   onSubmit: (data: any) => void
 }
