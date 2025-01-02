@@ -1,6 +1,7 @@
 import './globals.css'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
+import Providers from './providers'
 
 export const metadata = {
   title: 'CODEHCIU',
@@ -15,9 +16,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-neutral-100 text-neutral-900">
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        <Providers>
+          <Header />
+          <main>{children}</main>
+          <Footer />
+        </Providers>
       </body>
     </html>
   )

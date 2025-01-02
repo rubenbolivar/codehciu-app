@@ -2,15 +2,41 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { signIn } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement login logic
-    console.log('Login attempt:', { email, password })
+    setError(null)
+    setLoading(true)
+
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        setError('Credenciales inválidas')
+        return
+      }
+
+      // Redirigir al dashboard si la autenticación es exitosa
+      router.push('/dashboard')
+      router.refresh()
+    } catch (error) {
+      setError('Ocurrió un error al iniciar sesión')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -21,6 +47,12 @@ export default function LoginPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="bg-red-50 text-red-500 p-4 rounded-md">
+            {error}
+          </div>
+        )}
+
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700">
             Correo Electrónico
@@ -51,9 +83,10 @@ export default function LoginPage() {
 
         <button
           type="submit"
-          className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+          disabled={loading}
+          className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300"
         >
-          Iniciar Sesión
+          {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
         </button>
       </form>
 
