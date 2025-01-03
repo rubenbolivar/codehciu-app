@@ -1,10 +1,10 @@
-import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 import { hash } from 'bcrypt';
+import { db } from '@/db';
+import { users } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function GET() {
-  const client = await sql.connect();
-  
   try {
     console.log('Starting admin user creation...');
     
@@ -13,12 +13,10 @@ export async function GET() {
     console.log('Password hashed successfully');
     
     // Verificar si el usuario ya existe
-    const existingUser = await client.sql`
-      SELECT email FROM users WHERE email = 'admin@codehciu.org';
-    `;
-    console.log('Existing user check:', existingUser.rows);
+    const existingUser = await db.select().from(users).where(eq(users.email, 'admin@codehciu.org'));
+    console.log('Existing user check:', existingUser);
 
-    if (existingUser.rows.length > 0) {
+    if (existingUser.length > 0) {
       return NextResponse.json({ 
         message: 'Admin user already exists',
         loginEmail: 'admin@codehciu.org',
@@ -26,25 +24,19 @@ export async function GET() {
       });
     }
     
-    // Crear usuario admin
-    const result = await client.sql`
-      INSERT INTO users (name, email, password, is_admin, created_at, updated_at)
-      VALUES (
-        'Admin', 
-        'admin@codehciu.org', 
-        ${hashedPassword}, 
-        true,
-        CURRENT_TIMESTAMP,
-        CURRENT_TIMESTAMP
-      )
-      RETURNING id, email;
-    `;
+    // Crear usuario admin usando Drizzle
+    const result = await db.insert(users).values({
+      name: 'Admin',
+      email: 'admin@codehciu.org',
+      password: hashedPassword,
+      isAdmin: true,
+    }).returning();
     
     return NextResponse.json({ 
       message: 'Admin user created successfully',
       loginEmail: 'admin@codehciu.org',
       loginPassword: 'admin123',
-      user: result.rows[0]
+      user: result[0]
     });
   } catch (error) {
     console.error('Detailed error:', error);
@@ -52,7 +44,5 @@ export async function GET() {
       { error: 'Error creating admin user', details: error.message },
       { status: 500 }
     );
-  } finally {
-    await client.end();
   }
 }
