@@ -7,10 +7,17 @@ export async function GET() {
     // Hash de la contraseña
     const hashedPassword = await hash('admin123', 10);
     
-    // Crear usuario admin
+    // Crear usuario admin usando el schema correcto
     await sql`
-      INSERT INTO users (name, email, password, is_admin)
-      VALUES ('Admin', 'admin@codehciu.org', ${hashedPassword}, true)
+      INSERT INTO users (name, email, password, is_admin, created_at, updated_at)
+      VALUES (
+        'Admin', 
+        'admin@codehciu.org', 
+        ${hashedPassword}, 
+        true,
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP
+      )
       ON CONFLICT (email) DO NOTHING;
     `;
     
