@@ -4,19 +4,16 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    const allUsers = await db.select().from(users);
-    
-    // Filtramos información sensible antes de retornar
-    const safeUsers = allUsers.map(user => ({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      isAdmin: user.isAdmin
-    }));
+    const allUsers = await db.select({
+      id: users.id,
+      email: users.email,
+      name: users.name,
+      is_admin: users.isAdmin
+    }).from(users);
     
     return NextResponse.json({ 
-      users: safeUsers,
-      count: safeUsers.length 
+      users: allUsers,
+      count: allUsers.length 
     });
   } catch (error) {
     console.error('Error fetching users:', error);
