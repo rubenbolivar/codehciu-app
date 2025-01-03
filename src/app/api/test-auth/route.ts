@@ -15,10 +15,13 @@ export async function GET() {
       users: allUsers,
       count: allUsers.length 
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching users:', error);
     return NextResponse.json(
-      { error: 'Error fetching users', details: error.message },
+      { 
+        error: 'Error fetching users', 
+        details: error?.message || 'Unknown error'
+      },
       { status: 500 }
     );
   }

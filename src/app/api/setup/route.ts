@@ -50,10 +50,13 @@ export async function GET() {
       loginPassword: 'admin123',
       user: result[0]
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Detailed error:', error);
     return NextResponse.json(
-      { error: 'Error setting up admin user', details: error.message },
+      { 
+        error: 'Error setting up admin user', 
+        details: error?.message || 'Unknown error'
+      },
       { status: 500 }
     );
   }

@@ -5,10 +5,13 @@ export async function GET() {
   try {
     await migrate();
     return NextResponse.json({ message: 'Migration completed successfully' });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Migration error:', error);
     return NextResponse.json(
-      { error: 'Migration failed', details: error.message },
+      { 
+        error: 'Migration failed', 
+        details: error?.message || 'Unknown error'
+      },
       { status: 500 }
     );
   }
