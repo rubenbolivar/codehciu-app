@@ -8,7 +8,7 @@ export async function GET() {
       id: users.id,
       email: users.email,
       name: users.name,
-      is_admin: users.isAdmin
+      isAdmin: users.isAdmin
     }).from(users);
     
     return NextResponse.json({ 
