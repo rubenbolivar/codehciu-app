@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm';
 
 export async function GET() {
   try {
-    console.log('Starting admin user creation...');
+    console.log('Starting admin user setup...');
     
     // Hash de la contraseña
     const hashedPassword = await hash('admin123', 10);
@@ -17,16 +17,28 @@ export async function GET() {
     console.log('Existing user check:', existingUser);
 
     if (existingUser.length > 0) {
+      // Actualizar usuario existente
+      const result = await db
+        .update(users)
+        .set({ 
+          password: hashedPassword,
+          isAdmin: true,
+          name: 'Admin CODEHCIU'
+        })
+        .where(eq(users.email, 'admin@codehciu.org'))
+        .returning();
+      
       return NextResponse.json({ 
-        message: 'Admin user already exists',
+        message: 'Admin user updated successfully',
         loginEmail: 'admin@codehciu.org',
-        loginPassword: 'admin123'
+        loginPassword: 'admin123',
+        user: result[0]
       });
     }
     
-    // Crear usuario admin usando Drizzle
+    // Crear usuario admin si no existe
     const result = await db.insert(users).values({
-      name: 'Admin',
+      name: 'Admin CODEHCIU',
       email: 'admin@codehciu.org',
       password: hashedPassword,
       isAdmin: true,
@@ -41,7 +53,7 @@ export async function GET() {
   } catch (error) {
     console.error('Detailed error:', error);
     return NextResponse.json(
-      { error: 'Error creating admin user', details: error.message },
+      { error: 'Error setting up admin user', details: error.message },
       { status: 500 }
     );
   }
