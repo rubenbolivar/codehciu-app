@@ -3,6 +3,7 @@ import { hash } from 'bcrypt';
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: Request) {
   try {
@@ -33,8 +34,9 @@ export async function POST(request: Request) {
     const hashedPassword = await hash(password, 10);
     
     try {
-      // Crear usuario
+      // Crear usuario con un ID generado
       const result = await db.insert(users).values({
+        id: uuidv4(),
         name,
         email,
         password: hashedPassword,
