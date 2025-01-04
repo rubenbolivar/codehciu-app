@@ -1,20 +1,59 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { hash } from 'bcrypt'
 import Link from 'next/link'
 
 export default function RegisterPage() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
   })
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement registration logic
-    console.log('Register attempt:', formData)
+    setError(null)
+    setLoading(true)
+
+    // Validar que las contraseñas coincidan
+    if (formData.password !== formData.confirmPassword) {
+      setError('Las contraseñas no coinciden')
+      setLoading(false)
+      return
+    }
+
+    try {
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al registrar usuario')
+      }
+
+      // Redirigir al login después de un registro exitoso
+      router.push('/login?registered=true')
+    } catch (error: any) {
+      setError(error.message || 'Error al registrar usuario')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -23,6 +62,12 @@ export default function RegisterPage() {
         <h2 className="text-3xl font-bold">Crear Cuenta</h2>
         <p className="mt-2 text-gray-600">Regístrate para comenzar</p>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-400 p-4 text-red-700">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -83,9 +128,11 @@ export default function RegisterPage() {
 
         <button
           type="submit"
-          className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+          disabled={loading}
+          className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-white 
+            ${loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'}`}
         >
-          Registrarse
+          {loading ? 'Registrando...' : 'Registrarse'}
         </button>
       </form>
 

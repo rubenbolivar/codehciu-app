@@ -1,57 +1,55 @@
-import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 import { hash } from 'bcrypt';
-import crypto from 'crypto';
+import { db } from '@/db';
+import { users } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
-// Create new user
 export async function POST(request: Request) {
   try {
     const { email, name, password } = await request.json();
     
-    // Validate input
+    // Validar campos requeridos
     if (!email || !name || !password) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Todos los campos son requeridos' },
+        { status: 400 }
+      );
+    }
+
+    // Verificar si el usuario ya existe
+    const existingUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email));
+
+    if (existingUser.length > 0) {
+      return NextResponse.json(
+        { error: 'El correo electrónico ya está registrado' },
         { status: 400 }
       );
     }
     
-    // Hash the password
+    // Hash de la contraseña
     const hashedPassword = await hash(password, 10);
     
-    // Generate unique ID
-    const userId = crypto.randomUUID();
+    // Crear usuario
+    const result = await db.insert(users).values({
+      name,
+      email,
+      password: hashedPassword,
+      isAdmin: false,
+    }).returning();
     
-    const result = await sql`
-      INSERT INTO users (id, email, name, password, role)
-      VALUES (${userId}, ${email}, ${name}, ${hashedPassword}, 'USER')
-      RETURNING id, email, name, role;
-    `;
-    
-    return NextResponse.json({ user: result.rows[0] });
-  } catch (error) {
-    console.error('User creation error:', error);
+    // Retornar usuario creado (sin la contraseña)
+    const { password: _, ...user } = result[0];
+    return NextResponse.json({ 
+      message: 'Usuario registrado exitosamente',
+      user 
+    });
+  } catch (error: any) {
+    console.error('Error creating user:', error);
     return NextResponse.json(
-      { error: 'Error creating user' },
-      { status: 500 }
-    );
-  }
-}
-
-// Get all users
-export async function GET() {
-  try {
-    const result = await sql`
-      SELECT id, email, name, role, created_at 
-      FROM users 
-      ORDER BY created_at DESC;
-    `;
-    
-    return NextResponse.json({ users: result.rows });
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    return NextResponse.json(
-      { error: 'Error fetching users' },
+      { error: 'Error al crear usuario', details: error?.message },
       { status: 500 }
     );
   }
