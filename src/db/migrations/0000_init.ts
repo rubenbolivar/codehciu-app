@@ -1,17 +1,22 @@
-import { createClient } from '@vercel/postgres';
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
 
 export async function migrate() {
   console.log('🚀 Iniciando migración...');
 
-  const client = createClient();
-  await client.connect();
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL no está definida');
+  }
+
+  const sql = neon(process.env.DATABASE_URL);
+  const db = drizzle(sql);
 
   try {
     // Eliminar la tabla si existe
-    await client.sql`DROP TABLE IF EXISTS users CASCADE;`;
+    await sql`DROP TABLE IF EXISTS users CASCADE`;
     
     // Crear la tabla desde cero
-    await client.sql`
+    await sql`
       CREATE TABLE users (
         id SERIAL PRIMARY KEY,
         name TEXT,
@@ -27,7 +32,5 @@ export async function migrate() {
   } catch (error) {
     console.error('❌ Error durante la migración:', error);
     throw error;
-  } finally {
-    await client.end();
   }
 }
