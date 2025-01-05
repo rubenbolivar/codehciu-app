@@ -32,32 +32,26 @@ export async function POST(request: Request) {
     // Hash de la contraseña
     const hashedPassword = await hash(password, 10);
     
-    try {
-      // Crear usuario (el id se generará automáticamente)
-      const result = await db.insert(users).values({
+    // Crear usuario
+    const [result] = await db.insert(users)
+      .values({
         name,
         email,
         password: hashedPassword,
         isAdmin: false,
-      }).returning();
-      
-      // Retornar usuario creado (sin la contraseña)
-      const { password: _, ...user } = result[0];
-      return NextResponse.json({ 
-        message: 'Usuario registrado exitosamente',
-        user 
-      });
-    } catch (dbError: any) {
-      console.error('Database error:', dbError);
-      return NextResponse.json(
-        { error: 'Error al crear usuario en la base de datos', details: dbError?.message },
-        { status: 500 }
-      );
-    }
+      })
+      .returning();
+    
+    // Retornar usuario creado (sin la contraseña)
+    const { password: _, ...user } = result;
+    return NextResponse.json({ 
+      message: 'Usuario registrado exitosamente',
+      user 
+    });
   } catch (error: any) {
-    console.error('Request error:', error);
+    console.error('Database error:', error);
     return NextResponse.json(
-      { error: 'Error al procesar la solicitud', details: error?.message },
+      { error: 'Error al crear usuario en la base de datos', details: error?.message },
       { status: 500 }
     );
   }
