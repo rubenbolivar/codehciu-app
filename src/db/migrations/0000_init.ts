@@ -7,9 +7,13 @@ export async function migrate() {
   await client.connect();
 
   try {
+    // Eliminar la tabla si existe
+    await client.sql`DROP TABLE IF EXISTS users CASCADE;`;
+    
+    // Crear la tabla desde cero
     await client.sql`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY NOT NULL,
+      CREATE TABLE users (
+        id SERIAL PRIMARY KEY,
         name TEXT,
         email TEXT UNIQUE NOT NULL,
         password TEXT,
