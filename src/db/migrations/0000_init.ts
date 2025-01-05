@@ -1,9 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
-import dotenv from 'dotenv';
-
-// Inicializar dotenv
-dotenv.config();
+import 'dotenv/config';
 
 export async function migrate() {
   console.log('🚀 Iniciando migración...');
