@@ -28,7 +28,7 @@
     "@tiptap/react": "^2.10.3",
     "@tiptap/starter-kit": "^2.10.3",
     "@vercel/postgres": "^0.10.0",
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.38.3",
