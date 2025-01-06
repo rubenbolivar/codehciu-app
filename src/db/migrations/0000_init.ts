@@ -1,18 +1,18 @@
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
+import 'dotenv/config';
 
 export async function migrate() {
   console.log('🚀 Iniciando migración...');
 
   // Verificar que DATABASE_URL_UNPOOLED existe
-  const databaseUrl = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    throw new Error('No se encontró una URL de base de datos válida');
+  if (!process.env.DATABASE_URL_UNPOOLED) {
+    throw new Error('DATABASE_URL_UNPOOLED no está definida');
   }
 
-  console.log('Conectando a:', databaseUrl);
+  console.log('Conectando a:', process.env.DATABASE_URL_UNPOOLED);
 
-  const sql = neon(databaseUrl);
+  const sql = neon(process.env.DATABASE_URL_UNPOOLED);
   const db = drizzle(sql);
 
   try {
